@@ -1,0 +1,21 @@
+{
+  "name": "cweeperde-skills",
+  "owner": { "name": "cweeper", "url": "https://github.com/cweeperde" },
+  "description": "Claude skills by cweeper. Each plugin holds one skill and installs on its own.",
+  "plugins": [
+    {
+      "name": "interview",
+      "source": "./plugins/interview",
+      "description": "Claude asks structured multiple-choice questions, each with a recommended default, before it starts a task, then recaps the plan for your approval.",
+      "category": "workflow",
+      "tags": ["planning", "questions", "requirements", "vibe-coding"]
+    },
+    {
+      "name": "writing-unslop",
+      "source": "./plugins/writing-unslop",
+      "description": "Finds and removes AI slop in writing: inflated, vague or unverified text and typical LLM phrasing, in prose, docs, code comments and commit messages.",
+      "category": "writing",
+      "tags": ["writing", "editing", "docs", "commit-messages"]
+    }
+  ]
+}

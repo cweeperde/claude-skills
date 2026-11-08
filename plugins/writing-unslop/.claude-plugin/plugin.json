@@ -1,0 +1,7 @@
+{
+  "name": "writing-unslop",
+  "version": "1.0.0",
+  "description": "Finds and removes AI slop in writing: inflated, vague or unverified text and typical LLM phrasing, in prose, docs, code comments and commit messages.",
+  "author": { "name": "cweeper" },
+  "repository": "https://github.com/cweeperde/claude-skills"
+}
