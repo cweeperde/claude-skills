@@ -1,6 +1,6 @@
 {
   "name": "interview",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Claude asks structured multiple-choice questions, each with a recommended default, before it starts a task, then recaps the plan for your approval.",
   "author": { "name": "cweeper" },
   "repository": "https://github.com/cweeperde/claude-skills"
