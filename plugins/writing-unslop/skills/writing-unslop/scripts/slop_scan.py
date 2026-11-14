@@ -18,8 +18,10 @@ Usage:
     python slop_scan.py --json FILE              # machine-readable output
     python slop_scan.py --min-severity medium FILE
 
-Exit code: 0 always (it is advisory), unless --fail-on is given:
-    --fail-on high   exit 1 if any high-severity finding exists
+Exit codes:
+    0  scan finished (findings are advisory)
+    1  --fail-on was given and a finding at that level exists
+    2  a file could not be read (the readable ones are still scanned)
 Only the Python standard library is used.
 """
 
@@ -246,6 +248,7 @@ def compile_table(table):
 
 TABLES_PROSE = compile_table(CHAT_LEFTOVERS + ARTIFACTS + PLACEHOLDERS + INFLATION + RHETORIC)
 TABLE_ARTIFACTS = compile_table(ARTIFACTS + PLACEHOLDERS)
+TABLE_ARTIFACTS_ONLY = compile_table(ARTIFACTS)
 TABLE_COMMENTS = compile_table(CODE_COMMENT_RULES)
 TABLE_COMMENT_PROSE = compile_table(CHAT_LEFTOVERS + INFLATION)
 VOCAB_RE = re.compile(r"\b(" + "|".join(re.escape(w) for w in AI_VOCAB) + r")\b", re.IGNORECASE)
@@ -303,10 +306,15 @@ def scan_prose(fname, lines, out, markdown=False):
             continue
         scan_table(fname, lineno, line, TABLES_PROSE, out)
         words_total += len(WORD.findall(line))
-        for m in VOCAB_RE.finditer(line):
-            vocab_hits.append((lineno, m.group(0)))
+        # Phrases first; a single word inside a matched phrase ("testament" in
+        # "a testament to") is the same hit and must not count twice.
+        phrase_spans = []
         for m in PHRASE_RE.finditer(line):
             vocab_hits.append((lineno, m.group(0)))
+            phrase_spans.append(m.span())
+        for m in VOCAB_RE.finditer(line):
+            if not any(s <= m.start() and m.end() <= e for s, e in phrase_spans):
+                vocab_hits.append((lineno, m.group(0)))
         emdash += line.count("—")
         bold_spans += len(re.findall(r"\*\*[^*]+\*\*|__[^_]+__", line))
         if CONNECTIVES.search(line):
@@ -523,7 +531,7 @@ def scan_code(fname, lines, out, ext):
         if CURLY.search(line):
             out.append(Finding(fname, i, "curly-quotes-in-code", "high", CURLY.search(line).group(0),
                                "Typographic quote in code. Probably pasted from rendered chat; will break."))
-        scan_table(fname, i, line, compile_table(ARTIFACTS), out)
+        scan_table(fname, i, line, TABLE_ARTIFACTS_ONLY, out)
         if re.search(r"except\s*(Exception)?\s*(as \w+)?\s*:\s*(pass|\.\.\.)\s*$", line) or \
                 re.search(r"catch\s*\([^)]*\)\s*\{\s*\}", line):
             out.append(Finding(fname, i, "swallowed-exception", "medium", line.strip()[:60],
@@ -534,14 +542,30 @@ def scan_code(fname, lines, out, ext):
 # Commit messages
 # ---------------------------------------------------------------------------
 
+GIT_TEMPLATE = re.compile(
+    r"^# (Please enter the commit message|On branch |Changes to be committed|Changes not staged|"
+    r"Untracked files|Your branch |Lines starting with '#'|Do not modify or remove the line above)"
+)
+GIT_SCISSORS = re.compile(r"^# -+ >8 -+$")
+
+
 def scan_commit(fname, lines, out):
+    # git ignores everything below the scissors line (commit -v)
+    for i, l in enumerate(lines):
+        if GIT_SCISSORS.match(l):
+            lines = lines[:i]
+            break
     # git strips lines starting with '#'; keep original line numbers for reporting
     numbered = [(i, l) for i, l in enumerate(lines, 1) if not l.startswith("#")]
     while numbered and not numbered[0][1].strip():
         numbered.pop(0)
     if not numbered:
         return
-    stripped_md = [(i, l) for i, l in enumerate(lines, 1) if re.match(r"^#{1,6}\s+\S", l)]
+    # In a raw COMMIT_EDITMSG, single-'#' lines are git's own comments, not
+    # headings the author wrote; only '##'+ lines are then worth flagging.
+    has_template = any(GIT_TEMPLATE.match(l) for l in lines)
+    heading_rx = r"^#{2,6}\s+\S" if has_template else r"^#{1,6}\s+\S"
+    stripped_md = [(i, l) for i, l in enumerate(lines, 1) if re.match(heading_rx, l)]
     for i, l in stripped_md:
         out.append(Finding(fname, i, "commit-markdown", "medium", l.strip()[:60],
                            "Markdown heading in a commit message: git treats '#' lines as comments and deletes them."))
@@ -637,6 +661,7 @@ def main(argv=None):
     args = ap.parse_args(argv)
 
     all_findings = []
+    unreadable = []
     for path in args.files:
         if path == "-":
             text = sys.stdin.read()
@@ -645,9 +670,14 @@ def main(argv=None):
                 text = Path(path).read_text(encoding="utf-8", errors="replace")
             except OSError as e:
                 print(f"slop_scan: cannot read {path}: {e}", file=sys.stderr)
+                unreadable.append(path)
                 continue
         kind = args.kind or infer_kind(path)
         all_findings.extend(scan_text(path, text, kind))
+
+    if unreadable and len(unreadable) == len(args.files):
+        # Nothing was scanned; a "no findings" summary would be misleading.
+        return 2
 
     minsev = SEVERITY_ORDER[args.min_severity]
     shown = [f for f in all_findings if SEVERITY_ORDER[f.severity] >= minsev]
@@ -667,9 +697,13 @@ def main(argv=None):
             print(f"  L{f.line:<5} [{f.severity:<6}] {f.category}: {f.match}")
             print(f"         -> {f.advice}")
         print(f"\nSummary: {counts['high']} high, {counts['medium']} medium, {counts['low']} low (score {score}).")
+        if unreadable:
+            print(f"Not scanned ({len(unreadable)} unreadable): {', '.join(unreadable)}")
         print(verdict)
         print("Signals, not proof: use them to find places to rewrite, never to judge authorship.")
 
+    if unreadable:
+        return 2
     if args.fail_on:
         lvl = SEVERITY_ORDER[args.fail_on]
         if any(SEVERITY_ORDER[f.severity] >= lvl for f in all_findings):

@@ -1,0 +1,7 @@
+{
+  "name": "handoff",
+  "version": "1.0.0",
+  "description": "Writes a short HANDOFF.md with the verified state, decisions, open problems and next steps, so a later session can resume the work, and resumes from one.",
+  "author": { "name": "cweeper" },
+  "repository": "https://github.com/cweeperde/claude-skills"
+}

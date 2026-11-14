@@ -16,6 +16,13 @@
       "description": "Finds and removes AI slop in writing: inflated, vague or unverified text and typical LLM phrasing, in prose, docs, code comments and commit messages.",
       "category": "writing",
       "tags": ["writing", "editing", "docs", "commit-messages"]
+    },
+    {
+      "name": "handoff",
+      "source": "./plugins/handoff",
+      "description": "Writes a short HANDOFF.md with the verified state, decisions, open problems and next steps, so a later session can resume the work, and resumes from one.",
+      "category": "workflow",
+      "tags": ["handoff", "session", "notes", "continuity"]
     }
   ]
 }
