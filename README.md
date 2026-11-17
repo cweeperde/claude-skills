@@ -10,6 +10,7 @@ Skills I wrote for Claude. Each one installs on its own.
 
 ```text
 /plugin marketplace add cweeperde/claude-skills
+
 /plugin install interview@cweeperde-skills
 /plugin install writing-unslop@cweeperde-skills
 /plugin install handoff@cweeperde-skills
