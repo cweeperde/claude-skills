@@ -27,7 +27,7 @@ cp -r claude-skills/plugins/interview/skills/interview ~/.claude/skills/
 
 ## claude.ai
 
-Download the skill's zip from the [latest releases](https://github.com/cweeperde/claude-skills/releases), then go to Customize > Skills, click +, choose Create skill > Upload a skill and pick the zip. Skills need code execution, which you can turn on under Settings > Capabilities.
+Download a skill's zip from the [latest release](https://github.com/cweeperde/claude-skills/releases/latest): [interview.zip](https://github.com/cweeperde/claude-skills/releases/latest/download/interview.zip), [writing-unslop.zip](https://github.com/cweeperde/claude-skills/releases/latest/download/writing-unslop.zip), [handoff.zip](https://github.com/cweeperde/claude-skills/releases/latest/download/handoff.zip). Then go to Customize > Skills, click +, choose Create skill > Upload a skill and pick the zip. Skills need code execution, which you can turn on under Settings > Capabilities.
 
 ## License
 

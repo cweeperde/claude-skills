@@ -1,8 +1,10 @@
 name: Release
 
-# Push a tag named <plugin>-v<x.y.z> (e.g. interview-v1.1.0) to publish that
-# plugin's skill zip as a GitHub Release. The tag must match plugin.json and
-# the newest dated CHANGELOG entry.
+# Push a tag named <plugin>-v<x.y.z> (e.g. interview-v1.1.0) to publish a
+# GitHub Release for that plugin. The tag must match plugin.json and the newest
+# dated CHANGELOG entry. Every release carries the zips of all skills as of
+# that commit, so the release marked Latest always has the full set and
+# releases/latest/download/<skill>.zip links keep working.
 on:
   push:
     tags: ["*-v*.*.*"]
@@ -22,24 +24,17 @@ jobs:
       - name: Check tag against plugin.json and CHANGELOG
         run: python scripts/validate.py --tag "$GITHUB_REF_NAME"
 
-      - name: Build zip and release notes
+      - name: Build zips and release notes
         run: |
-          plugin="${GITHUB_REF_NAME%-v*}"
-          version="${GITHUB_REF_NAME##*-v}"
-          python scripts/build_zips.py "$plugin"
-          # Release notes: the CHANGELOG section for this version
-          python - "plugins/$plugin/CHANGELOG.md" "$version" > notes.md <<'EOF'
-          import re, sys
-          text = open(sys.argv[1], encoding="utf-8").read()
-          m = re.search(rf"^## \[?{re.escape(sys.argv[2])}\b.*?\n(.*?)(?=^## |\Z)", text, re.M | re.S)
-          print(m.group(1).strip() if m else "")
-          EOF
+          python scripts/build_zips.py
+          python scripts/release_notes.py "$GITHUB_REF_NAME" > notes.md
+          echo "TITLE=${GITHUB_REF_NAME%-v*} ${GITHUB_REF_NAME##*-v}" >> "$GITHUB_ENV"
 
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
         run: >
           gh release create "$GITHUB_REF_NAME"
-          --title "$GITHUB_REF_NAME"
+          --title "$TITLE"
           --notes-file notes.md
           dist/*.zip

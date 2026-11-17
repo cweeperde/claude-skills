@@ -20,13 +20,15 @@ FIXED_TIME = (1980, 1, 1, 0, 0, 0)  # zip epoch; keeps builds byte-identical
 def build(skill_dir: pathlib.Path) -> pathlib.Path:
     out = dist / f"{skill_dir.name}.zip"
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as zf:
-        for f in sorted(skill_dir.rglob("*")):
+        # sort by the posix string: Path ordering is case-insensitive on Windows
+        for f in sorted(skill_dir.rglob("*"), key=lambda p: p.as_posix()):
             if not f.is_file() or SKIP & set(f.parts) or f.suffix == ".pyc":
                 continue
             # claude.ai expects the skill folder at the top of the zip
             info = zipfile.ZipInfo(f.relative_to(skill_dir.parent).as_posix(), FIXED_TIME)
             info.compress_type = zipfile.ZIP_DEFLATED
             info.external_attr = 0o644 << 16
+            info.create_system = 3  # "Unix" on every OS, so Windows builds match CI
             zf.writestr(info, f.read_bytes())
     return out
 
