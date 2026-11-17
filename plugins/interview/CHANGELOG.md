@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.1.0 - unreleased
+## 1.1.0 - 2026-11-17
 
 - Self-triggers only for large, underspecified builds, and the description now says when not to (bug fixes, small features, clear refactors).
 - Says what it found in the code before the first round of questions.

@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.1.0 - unreleased
+## 1.1.0 - 2026-11-17
 
 - Loads automatically for longer text the user will publish or send; for commit messages and code comments only when asked to review or rewrite them.
 - `slop_scan.py`: a word inside a matched phrase ("testament" in "a testament to") no longer counts twice.
