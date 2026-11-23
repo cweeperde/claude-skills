@@ -1,0 +1,7 @@
+{
+  "name": "release",
+  "version": "1.0.0",
+  "description": "Cuts a release: finds out how the project releases, proposes the version, prepares everything and pushes only after your approval. Remembers each project's release rules, re-checked against their sources before use.",
+  "author": { "name": "cweeper" },
+  "repository": "https://github.com/cweeperde/claude-skills"
+}

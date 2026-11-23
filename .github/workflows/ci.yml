@@ -35,3 +35,4 @@ jobs:
           README.md
           plugins/interview/skills/interview/SKILL.md
           plugins/handoff/skills/handoff/SKILL.md
+          plugins/release/skills/release/SKILL.md
