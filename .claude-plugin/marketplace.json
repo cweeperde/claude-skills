@@ -23,6 +23,13 @@
       "description": "Writes a short HANDOFF.md with the verified state, decisions, open problems and next steps, so a later session can resume the work, and resumes from one.",
       "category": "workflow",
       "tags": ["handoff", "session", "notes", "continuity"]
+    },
+    {
+      "name": "release",
+      "source": "./plugins/release",
+      "description": "Cuts a release: finds out how the project releases, proposes the version, prepares everything and pushes only after your approval. Remembers each project's release rules, re-checked against their sources before use.",
+      "category": "workflow",
+      "tags": ["release", "versioning", "changelog", "git-tags"]
     }
   ]
 }
